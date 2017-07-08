@@ -1,0 +1,49 @@
+#!/bin/bash
+# Artifactory location
+#1)repo=simple/pu-release-local
+#2)name=jackpot.war
+#3)artifact=com/peixeurbano/jackpot
+#4)extenção(war,jar,sar)
+#5)Diretorio de destino /opt/wildfly/standalone/deployments/
+#Exemplo
+#sudo artifactory-last simple/pu-release-local jackpot.war com/peixeurbano/jackpot war /opt/wildfly/standalone/deployments
+if [ -z "$1" ] || [ -z "$2" ]  || [ -z "$3" ] || [ -z "$4" ] || [ -z "$5" ] ; then
+   exit
+fi
+#server=https://artifactory.peixeurbano.local/artifactory
+server=$( cat /opt/infrati/config/scripts.conf | grep ^artifactory | awk '{ print $2 }' )
+repo=$1
+# Maven artifact location
+name=$2
+artifact=$3/$name
+echo artifact=$artifact
+path=$server/$repo/$artifact
+echo path=$path
+wget --no-check-certificate $path/maven-metadata.xml -O /tmp/maven-metadata.xml
+version=`cat /tmp/maven-metadata.xml | grep latest | sed "s/.*<latest>\([^<]*\)<\/latest>.*/\1/"`
+rm -rf /tmp/maven-metadata.xml
+echo version=$version
+
+file=$name-$version.$4
+final_file=$name.$4
+url=$path/$version/$file
+
+echo 'url='$url
+
+echo 'removendo '$5/$name*
+rm -rf $5/$name*
+sleep 5
+rm -rf $5/$name*
+
+#wget -q -N $url -P /tmp/
+wget --no-check-certificate -N $url -P /tmp/
+echo $file > /tmp/$file.deployed
+
+chown jboss.jboss /tmp/$file.deployed
+chown jboss.jboss /tmp/$file
+
+cp -rfp /tmp/$file $5/$final_file
+cp -rfp /tmp/$file.deployed $5/$final_file.deployed
+
+rm -rf /tmp/$file
+rm -rf /tmp/$file.deployed

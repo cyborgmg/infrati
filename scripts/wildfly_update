@@ -1,0 +1,22 @@
+#!/bin/bash
+
+/etc/init.d/wildfly stop
+
+repository=$( cat /opt/infrati/config/scripts.conf | grep ^repository | awk '{ print $2 }' )
+deployments=$( cat /opt/infrati/config/scripts.conf | grep ^deployments | awk '{ print $2 }' )
+server=$( cat /opt/infrati/config/scripts.conf | grep ^server | awk '{ print $2 }' )
+
+mkdir -p $server/standalone/deployments-bk
+rm -rf $server/standalone/deployments-bk/*
+cp -rfp $server/standalone/deployments/* $server/standalone/deployments-bk/
+
+/opt/wildfly/bin/clean.sh kraken
+
+chmod 0755 /opt/infrati/devops/artifactory-last
+
+/opt/infrati/devops/artifactory-last $repository kraken com/peixeurbano/kraken war $deployments
+/opt/infrati/devops/artifactory-last $repository kraken.lib com/peixeurbano/kraken jar $deployments
+/opt/infrati/devops/artifactory-last $repository kraken.redshift com/peixeurbano/kraken jar $deployments
+/opt/infrati/devops/artifactory-last $repository kraken.schedule com/peixeurbano/kraken jar $deployments
+
+/etc/init.d/wildfly start

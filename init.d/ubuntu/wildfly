@@ -1,0 +1,30 @@
+#!/bin/sh
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+DESC="wildfly daemon"
+NAME=nohup
+DAEMON=/usr/bin/nohup
+PIDFILE=/var/run/wildfly.pid
+SCRIPTNAME=/etc/init.d/wildfly
+
+# Source function library.
+. /lib/lsb/init-functions
+
+case "$1" in
+start)	log_daemon_msg "Starting wildfly" "wildfly"
+        start_daemon -p $PIDFILE $DAEMON /opt/wildfly/bin/standalone.sh & > /dev/null 2>&1&
+        log_end_msg $?
+	;;
+stop)	log_daemon_msg "Stopping wildfly" "wildfly"
+        killproc -p $PIDFILE $DAEMON
+		kill -s 9 $( ps ax | grep java | grep jboss | awk '{print $1 }' ) 2>&1&
+        RETVAL=$?
+        [ $RETVAL -eq 0 ] && [ -e "$PIDFILE" ] && rm -f $PIDFILE
+        log_end_msg $RETVAL
+    ;;
+restart) log_daemon_msg "Restarting wildfly" "wildfly"
+        $0 stop
+        $0 start
+        ;;
+esac
+exit 0

@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+# cyborg-vpn control script
+#
+# chkconfig: - 80 20
+# description: cyborg-vpn startup script
+# processname: cyborg-vpn
+# pidfile: /var/run/cyborg-vpn/cyborg-vpn.pid
+#
+# Source function library.
+. /etc/init.d/functions
+start() {
+	nohup /usr/bin/vpn-check.sh 192.168.2.1 > /dev/null 2>&1&
+	success
+	echo
+	return 0
+}
+
+stop() {
+	ip route del 192.168.2.0/24 dev ppp0
+	killall -s 9 'vpn-check.sh'
+	killall -s 9 pppd
+	success
+	echo
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart)
+		$0 stop
+		$0 start
+		;;
+	*)
+		## If no parameters are given, print which are avaiable.
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+		;;
+esac

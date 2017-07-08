@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+# oauth-proxy control script
+#
+# chkconfig: - 80 20
+# description: oauth-proxy startup script
+# processname: oauth-proxy
+# pidfile: /var/run/oauth-proxy/oauth-proxy.pid
+#
+
+# Source function library.
+. /etc/init.d/functions
+
+start() {
+	/opt/oauth2/oauth2_proxy -config /opt/oauth2/oauth2_proxy.cfg > /dev/null 2>&1&
+	success	
+	echo
+	return 0
+}
+
+stop() {
+	killall -s 9 oauth2_proxy
+	success
+	echo
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart)
+		$0 stop
+		$0 start
+		;;
+	*)
+		## If no parameters are given, print which are avaiable.
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+		;;
+esac

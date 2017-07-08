@@ -1,0 +1,53 @@
+#!/bin/sh
+#
+# server-all control script
+#
+# chkconfig: - 80 20
+# description: server-all startup script
+# processname: server-all
+# pidfile: /var/run/server-all/server-all.pid
+#
+
+# Source function library.
+. /etc/init.d/functions
+
+start() {
+	
+	/etc/init.d/cyborg-vpn start
+	/etc/init.d/peixe-vpn start
+	/etc/init.d/oauth-proxy start
+	/etc/init.d/wildfly start
+	
+	success
+	echo
+	return 0
+}
+
+stop() {
+	
+	/etc/init.d/cyborg-vpn stop
+	/etc/init.d/peixe-vpn stop
+	/etc/init.d/oauth-proxy stop
+	/etc/init.d/wildfly stop
+	
+	success
+	echo
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart)
+		$0 stop
+		$0 start
+		;;
+	*)
+		## If no parameters are given, print which are avaiable.
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+		;;
+esac

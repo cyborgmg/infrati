@@ -1,0 +1,31 @@
+#!/bin/sh
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+DESC="cyborg-vpn daemon"
+NAME=nohup
+DAEMON=/usr/bin/nohup
+PIDFILE=/var/run/cyborg-vpn.pid
+SCRIPTNAME=/etc/init.d/cyborg-vpn
+
+# Source function library.
+. /lib/lsb/init-functions
+
+case "$1" in
+start)	log_daemon_msg "Starting cyborg-vpn" "cyborg-vpn"
+        start_daemon -p $PIDFILE $DAEMON /usr/bin/vpn-check.sh 192.168.2.1 > /dev/null 2>&1&
+        log_end_msg $?
+	;;
+stop)	log_daemon_msg "Stopping cyborg-vpn" "cyborg-vpn"
+        killproc -p $PIDFILE $DAEMON
+		killall -s 9 'vpn-check.sh'  > /dev/null 2>&1&
+		killall -s 9 pppd  > /dev/null 2>&1&
+        RETVAL=$?
+        [ $RETVAL -eq 0 ] && [ -e "$PIDFILE" ] && rm -f $PIDFILE
+        log_end_msg $RETVAL
+    ;;
+restart) log_daemon_msg "Restarting cyborg-vpn" "cyborg-vpn"
+        $0 stop
+        $0 start
+        ;;
+esac
+exit 0

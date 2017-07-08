@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+# peixe-vpn control script
+#
+# chkconfig: - 80 20
+# description: peixe-vpn startup script
+# processname: peixe-vpn
+# pidfile: /var/run/peixe-vpn/peixe-vpn.pid
+#
+# Source function library.
+. /etc/init.d/functions
+start() {
+	/usr/sbin/openvpn --config /etc/openvpn/rodrigo.mendes.eng.20161202.ovpn > /dev/null 2>&1&
+	sleep 5
+	route add -net 172.16.210.1 netmask 255.255.255.255 gw 172.16.210.101 dev tun0
+	route add -net 172.16.210.100 netmask 255.255.255.255 dev tun0
+	route add -net 172.16.210.102 netmask 255.255.255.255 dev tun0
+	route add -net 172.16.210.103 netmask 255.255.255.255 dev tun0
+	route add -net 224.0.0.0 netmask 240.0.0.0 dev tun0
+	route add -net 255.255.255.255 netmask 255.255.255.255 dev tun0
+	success
+	echo
+	return 0
+}
+
+stop() {
+	killall -s 9 openvpn
+	success
+	echo
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart)
+		$0 stop
+		$0 start
+		;;
+	*)
+		## If no parameters are given, print which are avaiable.
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+		;;
+esac
